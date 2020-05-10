@@ -9,6 +9,9 @@ class Blockchain(object):
 
     def new_transaction(self, sender, recipient, amount):
         #Adds a transaction to the transaction list
+        timestamp = time()
+        transaction = "[" + timestamp + "]" + sender + "->" + recipient + ":" + amount
+        self.transaction_list.append(transaction)
         return 0
 
     def generate_hash(self):
@@ -21,6 +24,7 @@ class Blockchain(object):
 
     def generate_merkle_tree(self):
         #Creates a merkle tree and returns the root
+
         return 0
 
     def generate_proof(self):
