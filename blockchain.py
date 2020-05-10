@@ -1,5 +1,6 @@
 import hashlib
 from time import time
+from merkle import MerkleTree
 
 class Blockchain(object):
 
@@ -9,8 +10,8 @@ class Blockchain(object):
 
     def new_transaction(self, sender, recipient, amount):
         #Adds a transaction to the transaction list
-        timestamp = time()
-        transaction = "[" + timestamp + "]" + sender + "->" + recipient + ":" + amount
+        timestamp = int(time())
+        transaction = "[" + str(timestamp) + "]" + sender + "->" + recipient + ":" + str(amount)
         self.transaction_list.append(transaction)
         return 0
 
@@ -24,7 +25,9 @@ class Blockchain(object):
 
     def generate_merkle_tree(self):
         #Creates a merkle tree and returns the root
-
+        mT = MerkleTree()
+        mT.generateMerkleTree(self.transaction_list)
+        print("From blockchain merkle root is", mT.getMerkleRoot())
         return 0
 
     def generate_proof(self):
@@ -45,20 +48,27 @@ class Blockchain(object):
             'hash': None
         }
 
-        block.previous_hash = self.previous_hash()
-        block.merkle_tree_root = self.generate_merkle_tree()
-        block.hash = self.generate_hash()
+        block['previous_hash'] = self.previous_hash()
+        block['merkle_tree_root'] = self.generate_merkle_tree()
+        block['hash'] = self.generate_hash()
 
         #Resetting the current list of transactions
         self.transaction_list = []
         #Adding a new block
         self.chain.append(block)
-
+        print('block generated', block)
         return block
 
 
 def main():
-    print("hello blockchain")
+    blockchain = Blockchain()
+    blockchain.new_transaction('A', 'B', 20)
+    blockchain.new_transaction('A', 'B', 40)
+    blockchain.new_transaction('A', 'B', 30)
+    blockchain.new_transaction('A', 'B', 30)
+    blockchain.new_transaction('A', 'B', 30)
+    blockchain.new_transaction('A', 'B', 30)
+    blockchain.generate_block()
 
 if __name__ == "__main__":
     main()
