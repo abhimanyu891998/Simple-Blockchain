@@ -8,6 +8,42 @@ class Blockchain(object):
         self.chain = []
         self.transaction_list = []
 
+    def hasPath(self,root, arr, x, pos): 
+        
+        if (not root): 
+            return False
+        
+        # push the node's value in 'arr'  
+        arr.append({pos:root.data})      
+
+        if (root.data == x):      
+            return True
+        
+
+        if (self.hasPath(root.left, arr, x, "left") or 
+            self.hasPath(root.right, arr, x, "right")):  
+            return True
+
+
+        arr.pop(-1)  
+        return False
+    
+
+    def printPath(self,root, x): 
+        
+        # vector to store the path  
+        arr = []  
+        
+        # if required node 'x' is present  
+        # then print the path  
+        if (self.hasPath(root, arr, x, "")): 
+            return arr
+        
+        # 'x' is not present in the  
+        # binary tree  
+        else: 
+            return None
+
     def new_transaction(self, sender, recipient, amount):
         #Adds a transaction to the transaction list
         timestamp = int(time())
@@ -31,7 +67,13 @@ class Blockchain(object):
 
     def generate_proof(self):
         #Returns a proof of the transaction
-        return 0
+        proof = []
+        
+        for block in self.chain:
+            #Just check if a path is there in this block, then just return the path
+            continue
+        
+        return proof
 
     def verify_transaction(self):
         #Verify if a transaction T is in the blockchain
