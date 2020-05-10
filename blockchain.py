@@ -1,5 +1,6 @@
 import hashlib
 from time import time
+from MerkleTree import MerkleTree
 
 class Blockchain(object):
 
@@ -9,8 +10,8 @@ class Blockchain(object):
 
     def new_transaction(self, sender, recipient, amount):
         #Adds a transaction to the transaction list
-        timestamp = time()
-        transaction = "[" + timestamp + "]" + sender + "->" + recipient + ":" + amount
+        timestamp = int(time())
+        transaction = "[" + str(timestamp) + "]" + sender + "->" + recipient + ":" + str(amount)
         self.transaction_list.append(transaction)
         return 0
 
@@ -24,10 +25,9 @@ class Blockchain(object):
 
     def generate_merkle_tree(self):
         #Creates a merkle tree and returns the root
-        
-
-
-        return 0
+        mT = MerkleTree()
+        mT.generateMerkleTree(self.transaction_list)
+        return mT.getMerkleRoot()
 
     def generate_proof(self):
         #Returns a proof of the transaction
@@ -41,27 +41,57 @@ class Blockchain(object):
         #Creates a new block
         block = {
             'previous_hash': None,
-            'timestamp': time(),
-            'nonce': len(self.chain) + 1, #Confused here, they have not given any details for nonce
+            'timestamp': int(time()),
+            'nonce': len(self.transaction_list),
             'merkle_tree_root': None,
             'hash': None
         }
-
-        block.previous_hash = self.previous_hash()
-        block.merkle_tree_root = self.generate_merkle_tree()
-        block.hash = self.generate_hash()
+        if len(self.chain) > 0: 
+            block['previous_hash'] = self.chain[len(self.chain)-1]['hash']
+        else: 
+            block['previous_hash'] = None
+        block['merkle_tree_root'] = self.generate_merkle_tree()
+        block['hash'] = block['merkle_tree_root']
 
         #Resetting the current list of transactions
         self.transaction_list = []
 
         #Adding a new block
         self.chain.append(block)
-
         return block
 
+    def print_chain(self):
+        i = 0
+        for block in self.chain:
+            print('\n \n-------- BLOCK', i,'---------')
+            previous_blocks_hash = block['previous_hash']
+            merkleRoot = block['merkle_tree_root']
+            block_nonce = block['nonce']
+            timestamp = block['timestamp']
+            block_hash = block['hash']
+            print('Previous Block\'s Hash :', previous_blocks_hash)
+            print('Merkle Tree Root :', merkleRoot)
+            print('Block\'s Nonce Value :', block_nonce)
+            print('Timestamp of creation :', timestamp)
+            print('Block\'s Hash:', block_hash)
+            print('------- END OF BLOCK ---------- \n \n')
+            i= i+1
 
 def main():
-    print("hello blockchain")
+    blockchain = Blockchain()
+    blockchain.new_transaction('Alice', 'Bob', 10)
+    blockchain.generate_block()
+    blockchain.new_transaction('Alice', 'Bob', 1)
+    blockchain.new_transaction('Charlie', 'Dan', 6)
+    blockchain.new_transaction('Dan', 'Bob', 2)
+    blockchain.generate_block()
+    blockchain.new_transaction('Bob', 'Alice', 4)
+    blockchain.new_transaction('Elle', 'Alice', 9)
+    blockchain.generate_block()
+    blockchain.new_transaction('Bob', 'Alice', 5)
+    blockchain.new_transaction('Elle', 'Alice', 3)
+    blockchain.generate_block()
+    blockchain.print_chain()
 
 if __name__ == "__main__":
     main()
