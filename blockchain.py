@@ -1,6 +1,6 @@
 import hashlib
 from time import time
-from merkle import MerkleTree
+from MerkleTree import MerkleTree
 
 class Blockchain(object):
 
@@ -27,8 +27,7 @@ class Blockchain(object):
         #Creates a merkle tree and returns the root
         mT = MerkleTree()
         mT.generateMerkleTree(self.transaction_list)
-        print("From blockchain merkle root is", mT.getMerkleRoot())
-        return 0
+        return mT.getMerkleRoot()
 
     def generate_proof(self):
         #Returns a proof of the transaction
