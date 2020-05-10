@@ -24,6 +24,8 @@ class Blockchain(object):
 
     def generate_merkle_tree(self):
         #Creates a merkle tree and returns the root
+        
+
 
         return 0
 
@@ -51,6 +53,7 @@ class Blockchain(object):
 
         #Resetting the current list of transactions
         self.transaction_list = []
+
         #Adding a new block
         self.chain.append(block)
 
