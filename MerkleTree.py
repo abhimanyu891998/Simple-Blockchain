@@ -39,6 +39,18 @@ class MerkleTree(object):
   def getMerkleRoot(self):
     return self.merkleRoot
 
+  def trasverseMerkleTreeFromRootAtPath(self, merkleRoot, path): 
+    node = merkleRoot
+    for direction_item in path:
+      for direction in direction_item:
+        if direction == 'DownRight':
+          node = node.right
+        elif direction == 'DownLeft':
+          node = node.left
+        else: 
+          continue
+    return node
+
 
 
 

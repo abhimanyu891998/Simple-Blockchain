@@ -21,8 +21,8 @@ class Blockchain(object):
             return True
         
 
-        if (self.hasPath(root.left, arr, x, "left") or 
-            self.hasPath(root.right, arr, x, "right")):  
+        if (self.hasPath(root.left, arr, x, "UpRight") or 
+            self.hasPath(root.right, arr, x, "UpLeft")):  
             return True
 
 
@@ -30,14 +30,14 @@ class Blockchain(object):
         return False
     
 
-    def printPath(self,root, x): 
+    def getPath(self,root, x): 
         
         # vector to store the path  
         arr = []  
         
         # if required node 'x' is present  
         # then print the path  
-        if (self.hasPath(root, arr, x, "")): 
+        if (self.hasPath(root, arr, x, "Root")): 
             return arr
         
         # 'x' is not present in the  
@@ -50,7 +50,6 @@ class Blockchain(object):
         timestamp = time()
         transaction = "[" + str(timestamp) + "]" + sender + "->" + recipient + ":" + str(amount)
         self.transaction_list.append(transaction)
-        print(transaction)
         return 0
 
     def generate_hash(self):
@@ -62,53 +61,58 @@ class Blockchain(object):
         return 0
 
     def generate_merkle_tree(self):
-        #Creates a merkle tree and returns the root
         mT = MerkleTree()
         mT.generateMerkleTree(self.transaction_list)
         return mT.getMerkleRoot()
 
-    def check_block_index_for_transaction(self, transaction):
-        transaction_time = float(transaction[1 :( transaction.rindex(']') ) ])
-        print("transaction_time is", transaction_time)
-        index_of_block = None
-        print(self.chain[0]['timestamp'])
-        if transaction_time < self.chain[3]['timestamp']:
-            index_of_block = 0
 
+    def generate_proof(self, block_index, transaction_index):
+        block = self.chain[block_index]
+        transaction = block['transaction_list'][transaction_index]
+        merkle_root = block['merkle_tree_root']
+        hashValue = sha256(str(transaction).encode()).hexdigest()
+
+        path_from_t_to_root = self.getPath(merkle_root, hashValue)[::-1]
+        print("Path from transation :", transaction, " with hash ", hashValue," to root is as follows:")
+        print(path_from_t_to_root)
+
+        if len(path_from_t_to_root):
+            return (hashValue, path_from_t_to_root, merkle_root)
+        return None
+
+
+    def verify_transaction(self, transaction_hash, proof_of_t, merkle_root):
+        path_from_root_to_t = self.path_from_root_to_t(proof_of_t)
+        computed_path = []
+        for direction_item in path_from_root_to_t:
+            for direction in direction_item:
+                hashValue = direction_item[direction]
+                newDirection = None
+                if(direction == 'Root'):
+                    newDirection = 'Root'
+                elif (direction == 'UpLeft'):
+                    newDirection = 'DownRight'
+                elif (direction == 'UpRight'):
+                    newDirection = 'DownLeft'
+                else:
+                    continue
+                if newDirection:
+                    computed_path.append({newDirection: hashValue})
+
+        # traverse merkle tree on computed path to check hashes 
+        merkleTreeUtil = MerkleTree()
+        validated_transation_hash = merkleTreeUtil.trasverseMerkleTreeFromRootAtPath(merkle_root, computed_path)
+        if validated_transation_hash.data == transaction_hash:
+            print('Transaction with hash :', transaction_hash, ' is validated. ')
         else: 
-            for i in range (1, len(self.chain) -1):
-                block_n = self.chain[i]
-                block_n_minus_1 = self.chain[i-1]
-                timestamp_block_1 = block_n['timestamp']
-                timestamp_block_previous = block_n_minus_1['timestamp']
-                # print('Current timestamp', transaction_time)
-                # print('N block', timestamp_block_1)
-                # print(transaction_time > timestamp_block_1, '   ', transaction_time < timestamp_block_next )
-                # print('N + 1', timestamp_block_next)
-                if transaction_time < timestamp_block_1 and transaction_time > timestamp_block_previous: 
-                    print('Condition true')
-                    index_of_block = i
-                    break
-
-        print(index_of_block)
-        return index_of_block
-
-
-
-    def generate_proof(self, transaction):
-        #Returns a proof of the transaction
-        # proof = []
-        # first check the block in which the transaction is 
-        block_index = self.check_block_index_for_transaction(transaction)
-        for block in self.chain:
-            #Just check if a path is there in this block, then just return the path
-            continue
+            print('Transaction with hash :', transaction_hash, ' is invalid. ')
         
-        return proof
+            
+            
 
-    def verify_transaction(self):
-        #Verify if a transaction T is in the blockchain
-        return 0
+    def path_from_root_to_t(self, path_from_t):
+        path_from_root = path_from_t[::-1]
+        return path_from_root
 
     def generate_block(self):
         #Creates a new block
@@ -143,11 +147,13 @@ class Blockchain(object):
             block_nonce = block['nonce']
             timestamp = block['timestamp']
             block_hash = block['hash']
+            transaction_list = block['transaction_list']
             print('Previous Block\'s Hash :', previous_blocks_hash)
             print('Merkle Tree Root :', merkleRoot)
             print('Block\'s Nonce Value :', block_nonce)
             print('Timestamp of creation :', timestamp)
             print('Block\'s Hash:', block_hash)
+            print('Number of Transactions in Block: ', len(transaction_list))
             print('------- END OF BLOCK ---------- \n \n')
             i= i+1
 
@@ -166,6 +172,27 @@ def main():
     blockchain.new_transaction('Elle', 'Alice', 3)
     blockchain.generate_block()
     blockchain.print_chain()
+
+
+    # FIRST TESTING
+    print("\n\n--------------------------------------------------------------")
+    (transaction_hash, proof_of_t, merkle_root_block) = blockchain.generate_proof(2,0)
+    if proof_of_t: 
+        blockchain.verify_transaction(transaction_hash, proof_of_t, merkle_root_block)
+    else: 
+        print("Not existing in block")
+    print("--------------------------------------------------------------\n\n")
+    
+
+    # SECOND TESTING 
+    print("\n\n--------------------------------------------------------------")
+    (transaction_hash, proof_of_t, merkle_root_block) = blockchain.generate_proof(3,1)
+    if proof_of_t:  
+        blockchain.verify_transaction(transaction_hash, proof_of_t, merkle_root_block)
+    else: 
+        print("Not existing in block")
+    print("----------------------------------------------------------------\n\n")
+    
 
     
 
