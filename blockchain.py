@@ -1,5 +1,6 @@
 import hashlib
 from time import time
+from hashlib import sha256
 from MerkleTree import MerkleTree
 
 class Blockchain(object):
@@ -49,6 +50,7 @@ class Blockchain(object):
         timestamp = int(time())
         transaction = "[" + str(timestamp) + "]" + sender + "->" + recipient + ":" + str(amount)
         self.transaction_list.append(transaction)
+        print(transaction)
         return 0
 
     def generate_hash(self):
@@ -65,10 +67,32 @@ class Blockchain(object):
         mT.generateMerkleTree(self.transaction_list)
         return mT.getMerkleRoot()
 
-    def generate_proof(self):
+    def check_block_index_for_transaction(self, transaction):
+        transaction_time = int(transaction[1 :( transaction.rindex(']') ) ])
+        index_of_block = None
+        for i in range (0, len(self.chain) -1):
+            block_n = self.chain[i]
+            block_n_plus_1 = self.chain[i+1]
+            timestamp_block_1 = block_n['timestamp']
+            timestamp_block_next = block_n_plus_1['timestamp']
+            # print('Current timestamp', transaction_time)
+            # print('N block', timestamp_block_1)
+            # print(transaction_time > timestamp_block_1, '   ', transaction_time < timestamp_block_next )
+            # print('N + 1', timestamp_block_next)
+            # if transaction_time < timestamp_block_1 and transaction_time > timestamp_block_previous: 
+            #     print('Condition true')
+            #     index_of_block = i
+            #     break
+        print(index_of_block)
+        return index_of_block
+
+
+
+    def generate_proof(self, transaction):
         #Returns a proof of the transaction
-        proof = []
-        
+        # proof = []
+        # first check the block in which the transaction is 
+        block_index = self.check_block_index_for_transaction(transaction)
         for block in self.chain:
             #Just check if a path is there in this block, then just return the path
             continue
@@ -84,6 +108,7 @@ class Blockchain(object):
         block = {
             'previous_hash': None,
             'timestamp': int(time()),
+            'transaction_list': self.transaction_list,
             'nonce': len(self.transaction_list),
             'merkle_tree_root': None,
             'hash': None
