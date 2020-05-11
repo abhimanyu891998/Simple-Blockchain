@@ -47,7 +47,7 @@ class Blockchain(object):
 
     def new_transaction(self, sender, recipient, amount):
         #Adds a transaction to the transaction list
-        timestamp = int(time())
+        timestamp = time()
         transaction = "[" + str(timestamp) + "]" + sender + "->" + recipient + ":" + str(amount)
         self.transaction_list.append(transaction)
         print(transaction)
@@ -68,21 +68,28 @@ class Blockchain(object):
         return mT.getMerkleRoot()
 
     def check_block_index_for_transaction(self, transaction):
-        transaction_time = int(transaction[1 :( transaction.rindex(']') ) ])
+        transaction_time = float(transaction[1 :( transaction.rindex(']') ) ])
+        print("transaction_time is", transaction_time)
         index_of_block = None
-        for i in range (0, len(self.chain) -1):
-            block_n = self.chain[i]
-            block_n_plus_1 = self.chain[i+1]
-            timestamp_block_1 = block_n['timestamp']
-            timestamp_block_next = block_n_plus_1['timestamp']
-            # print('Current timestamp', transaction_time)
-            # print('N block', timestamp_block_1)
-            # print(transaction_time > timestamp_block_1, '   ', transaction_time < timestamp_block_next )
-            # print('N + 1', timestamp_block_next)
-            # if transaction_time < timestamp_block_1 and transaction_time > timestamp_block_previous: 
-            #     print('Condition true')
-            #     index_of_block = i
-            #     break
+        print(self.chain[0]['timestamp'])
+        if transaction_time < self.chain[3]['timestamp']:
+            index_of_block = 0
+
+        else: 
+            for i in range (1, len(self.chain) -1):
+                block_n = self.chain[i]
+                block_n_minus_1 = self.chain[i-1]
+                timestamp_block_1 = block_n['timestamp']
+                timestamp_block_previous = block_n_minus_1['timestamp']
+                # print('Current timestamp', transaction_time)
+                # print('N block', timestamp_block_1)
+                # print(transaction_time > timestamp_block_1, '   ', transaction_time < timestamp_block_next )
+                # print('N + 1', timestamp_block_next)
+                if transaction_time < timestamp_block_1 and transaction_time > timestamp_block_previous: 
+                    print('Condition true')
+                    index_of_block = i
+                    break
+
         print(index_of_block)
         return index_of_block
 
@@ -107,7 +114,7 @@ class Blockchain(object):
         #Creates a new block
         block = {
             'previous_hash': None,
-            'timestamp': int(time()),
+            'timestamp': time(),
             'transaction_list': self.transaction_list,
             'nonce': len(self.transaction_list),
             'merkle_tree_root': None,
@@ -122,7 +129,7 @@ class Blockchain(object):
 
         #Resetting the current list of transactions
         self.transaction_list = []
-
+        print("block generation time", block['timestamp'])
         #Adding a new block
         self.chain.append(block)
         return block
@@ -159,6 +166,8 @@ def main():
     blockchain.new_transaction('Elle', 'Alice', 3)
     blockchain.generate_block()
     blockchain.print_chain()
+
+    
 
 if __name__ == "__main__":
     main()
